@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Snackbar from '../components/Snackbar';
+import Snackbar from './Snackbar';
 
 type Row = any;
 

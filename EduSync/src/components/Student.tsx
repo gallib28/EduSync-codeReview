@@ -1,13 +1,17 @@
-import { useEffect, useState } from 'react';
 import {
-  Container, Typography, Button,
-  Table, TableBody, TableCell, TableHead, TableRow,
-  TableContainer, Paper, Stack
+  Button,
+  Container,
+  Paper, Stack,
+  Table, TableBody, TableCell,
+  TableContainer,
+  TableHead, TableRow,
+  Typography
 } from '@mui/material';
+import { addDoc, collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Snackbar from '../components/Snackbar';
 import { db } from '../firebase';
-import { collection, addDoc, getDocs, deleteDoc, doc, query, where } from 'firebase/firestore';
 
 type Row = {
   StudentId: number;

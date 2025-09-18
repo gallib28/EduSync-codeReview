@@ -1,0 +1,87 @@
+import os
+import re
+import pandas as pd
+
+# נתיב לריפו שלך
+repo_path = r"C:\Users\tamil\OneDrive\Desktop\git_rep\EduSync"
+
+# דפוסי חיפוש לפי המחוון
+patterns = {
+    "MaterialUI": r"@mui/material",
+    "ResponsiveDesign": r"(useMediaQuery|responsiveFontSizes)",
+    "Firestore": r"(getFirestore|collection|addDoc|getDocs|updateDoc|deleteDoc)",
+    "DirectLinks": r"useParams",
+    "LoadingIndicator": r"(LinearProgress|CircularProgress)",
+    "UnitTestFile": r"\.test\.tsx$",
+}
+
+# שמות "חשודים" לקוד לא נקי
+bad_names = {"a", "b", "c", "x", "y", "z", "temp", "foo", "bar"}
+
+# מסכים מתוכננים לפי התכנון
+expected_screens = {
+    "Student": False,
+    "CareHandle": False,
+    "Request": False,
+    "ContactMsg": False,
+    "Appointment": False,
+    "Feedback": False,
+    "HomePage": False,
+    "Help": False,
+    "Management": False,
+    "Login": False,
+    "UserRequests": False,
+    "UserAppointments": False,
+    "UserFeedback": False,
+}
+
+results = []
+
+# מעבר על כל הקבצים בקוד
+for root, dirs, files in os.walk(repo_path):
+    for file in files:
+        file_path = os.path.join(root, file)
+        if file.endswith((".ts", ".tsx", ".js", ".jsx")):
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+
+            found_features = {}
+            for feature, pattern in patterns.items():
+                if feature == "UnitTestFile":
+                    if re.search(pattern, file):
+                        found_features[feature] = True
+                else:
+                    if re.search(pattern, content):
+                        found_features[feature] = True
+
+            # בדיקה לשמות משתנים לא קריאים
+            bad_found = [name for name in bad_names if re.search(rf"\b{name}\b", content)]
+            if bad_found:
+                found_features["BadNames"] = ", ".join(bad_found)
+
+            if found_features:
+                results.append({
+                    "File": file_path.replace(repo_path, ""),
+                    **found_features
+                })
+
+            # בדיקת מסכים מתוכננים
+            for screen in expected_screens.keys():
+                if screen.lower() in file.lower():
+                    expected_screens[screen] = True
+
+# הפיכת התוצאות לטבלה
+df = pd.DataFrame(results).fillna(False)
+
+# הוספת סטטוס למסכים מתוכננים
+screen_status = pd.DataFrame([
+    {"Screen": s, "Exists": v} for s, v in expected_screens.items()
+])
+
+# שמירת דוחות
+output_file = os.path.join(repo_path, "project_report.xlsx")
+with pd.ExcelWriter(output_file) as writer:
+    df.to_excel(writer, sheet_name="Code Features", index=False)
+    screen_status.to_excel(writer, sheet_name="Screens Checklist", index=False)
+
+print(f"✅ דוח נוצר בהצלחה: {output_file}")

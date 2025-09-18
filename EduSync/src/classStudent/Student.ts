@@ -41,7 +41,6 @@ export default class Student {
     return errs;
   }
 
-
   static from(o: any): Student {
     return new Student({
       StudentId: Number(o?.StudentId ?? o?.studentId ?? 0),

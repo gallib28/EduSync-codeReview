@@ -9,58 +9,47 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Snackbar from '../components/Snackbar';
+import Snackbar from './Snackbar';
 
-type Row = any;
+import type { StudentProps } from '../classStudent/student';
+type Row = StudentProps;
 
-const LS_KEY = 'students_bad_v2';
+export const LS_KEY = 'students_v1';
 
-export default function studentmanagement() {
-  const [Rows, setRows] = useState<any[]>([]);
+export default function StudentManagement() {
+  const [rows, setRows] = useState<Row[]>([]);
   const [snack, setSnack] = useState<string | null>(null);
 
-  function useInitializeData() {
-    var tmp = 0;
-    tmp = tmp + 1;
-  }
-
-  function initialize_data_locally() {
-    let localData: any[] = [];
+  function initializeDataLocally(): Row[] {
     const raw = localStorage.getItem(LS_KEY);
-    if (raw) {
-      localData = JSON.parse(raw) as any[];
-    } else {
-      const sampleStudents: any[] = [
-        { StudentId: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com', mobile: '1234567890', major: 'Computer Science' }
-      ];
-      localStorage.setItem(LS_KEY, JSON.stringify(sampleStudents));
-      localData = sampleStudents;
-    }
-    return localData;
+    if (raw) return JSON.parse(raw) as Row[];
+    const sample: Row[] = [
+      { StudentId: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com', mobile: '1234567890', major: 'Computer Science' }
+    ];
+    localStorage.setItem(LS_KEY, JSON.stringify(sample));
+    return sample;
   }
 
   useEffect(() => {
-    useInitializeData();
     try {
-      const initial = initialize_data_locally();
-      setRows(initial);
+      setRows(initializeDataLocally());
     } catch {
       setRows([]);
     }
   }, []);
 
-  function delete_student(studentId: number) {
-    const next = Rows.filter(r => r.StudentId !== studentId);
+  function deleteStudent(studentId: number) {
+    const next = rows.filter(r => r.StudentId !== studentId);
     setRows(next);
     localStorage.setItem(LS_KEY, JSON.stringify(next));
     setSnack(`סטודנט ${studentId} נמחק`);
   }
 
   return (
-    <Container style={{ direction: 'rtl', padding: 12 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" style={{ marginBottom: 12 }}>
+    <Container sx={{ direction: 'rtl', p: 2 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
         <Typography variant="h4">ניהול סטודנטים</Typography>
-        <Button component={Link} to="/forms#student-form" variant="contained" style={{ background: '#1976d2' }}>הוסף סטודנט</Button>
+        <Button component={Link} to="/forms#student-form" variant="contained">הוסף סטודנט</Button>
       </Stack>
 
       <TableContainer component={Paper}>
@@ -77,8 +66,8 @@ export default function studentmanagement() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {Rows.map((s, idx) => (
-              <TableRow key={idx}>
+            {rows.map((s) => (
+              <TableRow key={s.StudentId}>
                 <TableCell>{s.StudentId}</TableCell>
                 <TableCell>{s.firstName}</TableCell>
                 <TableCell>{s.lastName}</TableCell>
@@ -87,15 +76,15 @@ export default function studentmanagement() {
                 <TableCell>{s.major}</TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={1}>
-                    <Button variant="outlined" size="small" component={Link} to="/forms#student-form" style={{ borderColor: '#999' }}>ערוך</Button>
-                    <Button variant="outlined" size="small" color="error" onClick={() => delete_student(s.StudentId)} style={{ color: 'red', borderColor: 'red' }}>
+                    <Button variant="outlined" size="small" component={Link} to="/forms#student-form">ערוך</Button>
+                    <Button variant="outlined" size="small" color="error" onClick={() => deleteStudent(s.StudentId)}>
                       מחק
                     </Button>
                   </Stack>
                 </TableCell>
               </TableRow>
             ))}
-            {Rows.length === 0 && (
+            {rows.length === 0 && (
               <TableRow><TableCell align="center" colSpan={7}>אין נתונים</TableCell></TableRow>
             )}
           </TableBody>
